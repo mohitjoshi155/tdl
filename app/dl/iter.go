@@ -100,7 +100,7 @@ func (i *iter) HasNext() bool {
 	defer i.mu.Unlock()
 
 	j := i.j + 1
-	return i.i < len(i.dialogs) && j < len(i.dialogs[i.i].Messages)
+	return i.err == nil && i.i < len(i.dialogs) && j < len(i.dialogs[i.i].Messages)
 }
 
 func (i *iter) Next(ctx context.Context) bool {
@@ -133,7 +133,7 @@ func (i *iter) process(ctx context.Context) (ret bool, skip bool) {
 	}()
 
 	// end of iteration or error occurred
-	if i.i >= len(i.dialogs) || i.j >= len(i.dialogs[i.i].Messages) || i.err != nil {
+	if !i.HasNext() {
 		return false, false
 	}
 
