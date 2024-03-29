@@ -11,7 +11,6 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/go-faster/errors"
 	"github.com/gotd/td/telegram/message"
-	"github.com/gotd/td/telegram/message/styling"
 	"github.com/gotd/td/telegram/uploader"
 	"github.com/gotd/td/tg"
 	"golang.org/x/sync/errgroup"
@@ -101,12 +100,7 @@ func (u *Uploader) upload(ctx context.Context, elem Elem) error {
 		return errors.Wrap(err, "detect mime")
 	}
 
-	caption := []message.StyledTextOption{
-		styling.Code(elem.File().Name()),
-		styling.Plain(" - "),
-		styling.Code(mime.String()),
-	}
-	doc := message.UploadedDocument(f, caption...).
+	doc := message.UploadedDocument(f, elem.Caption()...).
 		MIME(mime.String()).
 		Filename(elem.File().Name())
 	// upload thumbnail TODO(iyear): maybe still unavailable
@@ -126,7 +120,7 @@ func (u *Uploader) upload(ctx context.Context, elem Elem) error {
 			break
 		}
 		// upload as photo
-		media = message.UploadedPhoto(f, caption...)
+		media = message.UploadedPhoto(f, elem.Caption()...)
 	case utils.Media.IsVideo(mime.String()):
 		// reset reader
 		if _, err = elem.File().Seek(0, io.SeekStart); err != nil {
@@ -146,6 +140,7 @@ func (u *Uploader) upload(ctx context.Context, elem Elem) error {
 	_, err = message.NewSender(u.opts.Client).
 		WithUploader(up).
 		To(elem.To()).
+		Reply(elem.Thread()).
 		Media(ctx, media)
 	if err != nil {
 		return errors.Wrap(err, "send message")

@@ -1,6 +1,7 @@
 package up
 
 import (
+	"github.com/gotd/td/telegram/message"
 	"os"
 	"path/filepath"
 
@@ -11,9 +12,11 @@ import (
 )
 
 type iterElem struct {
-	file  *uploaderFile
-	thumb *uploaderFile
-	to    peers.Peer
+	file    *uploaderFile
+	thumb   *uploaderFile
+	to      peers.Peer
+	caption []message.StyledTextOption
+	thread  int
 
 	asPhoto bool
 	remove  bool
@@ -30,8 +33,16 @@ func (e *iterElem) Thumb() (uploader.File, bool) {
 	return e.thumb, true
 }
 
+func (e *iterElem) Caption() []message.StyledTextOption {
+	return e.caption
+}
+
 func (e *iterElem) To() tg.InputPeerClass {
 	return e.to.InputPeer()
+}
+
+func (e *iterElem) Thread() int {
+	return e.thread
 }
 
 func (e *iterElem) AsPhoto() bool {
